@@ -1,0 +1,153 @@
+package br.com.cemobile.twitchtop50app.controller.activity;
+
+import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.MemoryCategory;
+
+import org.androidannotations.annotations.AfterInject;
+import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.EActivity;
+import org.androidannotations.annotations.OptionsItem;
+import org.androidannotations.annotations.OptionsMenu;
+import org.androidannotations.annotations.OptionsMenuItem;
+import org.androidannotations.annotations.UiThread;
+import org.androidannotations.annotations.ViewById;
+
+import br.com.cemobile.twitchtop50app.R;
+import br.com.cemobile.twitchtop50app.controller.event.ErrorEvent;
+import br.com.cemobile.twitchtop50app.controller.event.EventManager;
+import br.com.cemobile.twitchtop50app.controller.event.request.RequestGamesListEvent;
+import br.com.cemobile.twitchtop50app.controller.event.response.ResponseGamesListEvent;
+import br.com.cemobile.twitchtop50app.controller.fragment.MainFragment_;
+import br.com.cemobile.twitchtop50app.controller.fragment.MainGamesFragment;
+import br.com.cemobile.twitchtop50app.controller.fragment.MainGamesFragment_;
+import de.greenrobot.event.EventBus;
+
+@EActivity(R.layout.activity_main)
+@OptionsMenu(R.menu.menu_main)
+public class MainActivity extends AppCompatActivity {
+
+    protected FragmentManager fragmentManager;
+
+    protected MainFragment_ mainFragment;
+
+    @ViewById
+    protected Toolbar toolbar;
+
+    @ViewById
+    protected ProgressBar progressBar;
+
+    @ViewById
+    protected TextView foundTextView;
+
+    @OptionsMenuItem
+    protected MenuItem menuExit;
+
+    @AfterInject
+    protected void afterInjected() {
+        EventManager.getInstance().init();
+    }
+
+    private boolean alreadyRequestGamesList = false;
+
+    @AfterViews
+    protected void afterViews() {
+        this.setSupportActionBar(this.toolbar);
+
+        Glide.get(this).setMemoryCategory(MemoryCategory.HIGH);
+
+        this.fragmentManager = this.getSupportFragmentManager();
+
+        if (this.fragmentManager.findFragmentById(R.id.fragmentLayout) == null) {
+            this.mainFragment = new MainFragment_();
+            this.fragmentManager.beginTransaction()
+                    .add(R.id.fragmentLayout, this.mainFragment)
+                    .commit();
+        }
+
+        // Android Annotations issue: @AfterViews method is called multiple times if the same @EFragment instance is added again
+        // https://github.com/excilys/androidannotations/issues/1264
+        // alreadyRequestGamesList was created as a counter measure to fix Android Annotations issue
+        if (!alreadyRequestGamesList) {
+            Log.i("MainActivity", "[afterViews]RequestGamesListEvent");
+            EventBus.getDefault().post(new RequestGamesListEvent(this, 0));
+            alreadyRequestGamesList = true;
+        }
+    }
+
+    @OptionsItem(R.id.menuExit)
+    protected void onMenuExit() {
+        this.finish();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if(!EventBus.getDefault().isRegistered(this)) {
+            Log.d("MainActivity", "[onResume]EventBus.register");
+            EventBus.getDefault().register(this);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (EventBus.getDefault().isRegistered(this)) {
+            Log.d("MainActivity", "[onPause]EventBus.unregister");
+            EventBus.getDefault().unregister(this);
+        }
+        super.onPause();
+    }
+
+    public void onEvent(RequestGamesListEvent event) {
+        this.showProgressBar(true);
+    }
+
+    public void onEvent(ResponseGamesListEvent event) {
+        this.showProgressBar(false);
+        this.showFoundText();
+    }
+
+
+    public void onEvent(ErrorEvent event) {
+        this.showProgressBar(false);
+        this.showToast(event.getMessage());
+    }
+
+    @UiThread
+    public void showProgressBar(boolean show) {
+        int visibility = show ? View.VISIBLE : View.GONE;
+        this.progressBar.setVisibility(visibility);
+    }
+
+    @UiThread
+    protected void showFoundText() {
+        this.foundTextView.setVisibility(View.VISIBLE);
+    }
+
+    @UiThread
+    protected void showToast(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        EventManager.getInstance().destroy();
+        super.onDestroy();
+    }
+}

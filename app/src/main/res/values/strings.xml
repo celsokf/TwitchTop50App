@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Twitch Top 50 Games</string>
+    <string name="gamesWereFound">Games encontrados</string>
+    <string name="internetError">Sem conectividade. Por favor verifique o seu acesso à Internet</string>
+    <string name="offline">Sem conectividade com a internet. Por favor, verifique sua conexão.</string>
+    <string name="errorWasOcurred">Falha ao comunicar com o servidor. Por favor, tente novamente.</string>
+    <string name="title_activity_game">GameActivity</string>
+    <string name="action_share">Compartilhar</string>
+    <string name="description">Descrição</string>
+    <string name="shareOffer">Compartilhar game usando:</string>
+    <string name="no_games">Não há jogos encontrados</string>
+    <string name="action_exit">Sair</string>
+</resources>

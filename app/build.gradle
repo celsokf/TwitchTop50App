@@ -1,0 +1,85 @@
+apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
+apply plugin: 'com.neenbedankt.android-apt'
+
+def SupportVersion = '23.1.1'
+def AndroidAnnotationVersion = '3.3.1'
+def RetrofitVersion = '2.0.2'
+def GlideVersion = '3.6.0'
+def JacksonVersion = '2.5.4'
+def EventBusVersion = '2.4.0'
+def OkHttpVersion = "3.2.0"
+def DaggerVersion = "2.0.1"
+def JUnitVersion = '4.12'
+def RobotiumVersion = '5.4.1'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        applicationId "br.com.cemobile.twitchtop50app"
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+    }
+
+    apt {
+        arguments {
+            androidManifestFile variant.outputs[0].processResources.manifestFile
+            resourcePackageName "br.com.cemobile.twitchtop50app"
+        }
+    }
+
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
+    testCompile "junit:junit:$JUnitVersion"
+
+    compile "com.android.support:appcompat-v7:$SupportVersion"
+    compile "com.android.support:design:$SupportVersion"
+    compile "com.android.support:recyclerview-v7:$SupportVersion"
+    compile "com.android.support:cardview-v7:$SupportVersion"
+
+    apt "org.androidannotations:androidannotations:$AndroidAnnotationVersion"
+    compile "org.androidannotations:androidannotations-api:$AndroidAnnotationVersion"
+
+    compile "com.squareup.retrofit2:retrofit:$RetrofitVersion"
+    compile "com.squareup.retrofit2:converter-jackson:$RetrofitVersion"
+
+    compile "com.google.dagger:dagger:$DaggerVersion"
+    apt "com.google.dagger:dagger-compiler:$DaggerVersion"
+
+    compile "com.fasterxml.jackson.core:jackson-core:$JacksonVersion"
+    compile "com.fasterxml.jackson.core:jackson-annotations:$JacksonVersion"
+    compile "com.fasterxml.jackson.core:jackson-databind:$JacksonVersion"
+
+    compile "de.greenrobot:eventbus:$EventBusVersion"
+
+    compile "com.github.bumptech.glide:glide:$GlideVersion"
+
+    compile "com.squareup.okhttp3:logging-interceptor:$OkHttpVersion"
+
+    androidTestCompile "com.jayway.android.robotium:robotium-solo:$RobotiumVersion"
+
+    provided 'javax.annotation:jsr250-api:1.0'
+}
